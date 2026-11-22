@@ -68,6 +68,8 @@ header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rg
 .nav-links a:hover{color:var(--text)}
 @media (max-width:760px){.nav-links{display:none}}
 .nav .btn{padding:9px 16px;font-size:.85rem}
+.nav-btns{display:flex;gap:8px;flex:none}
+@media (max-width:420px){.nav .btn{padding:8px 12px;font-size:.78rem}.brand small{display:none}}
 
 /* hero */
 .hero{padding-block:clamp(40px,7vw,80px) 40px}
@@ -232,9 +234,11 @@ footer{border-top:1px solid var(--line);padding-block:40px;font-size:.85rem;colo
       <a href="#results">Results</a>
       <a href="#pricing">Pricing</a>
       <a href="#faq">FAQ</a>
-      <a href="app/">Members app</a>
     </nav>
-    <a class="btn btn-gold" href="#pricing">Get the bot</a>
+    <div class="nav-btns">
+      <a class="btn btn-ghost" href="app/">📱 Members app</a>
+      <a class="btn btn-gold" href="#pricing">Get the bot</a>
+    </div>
   </div>
 </header>
 
