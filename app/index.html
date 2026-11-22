@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>JS Gold Session</title>
+<meta name="description" content="JS Gold Session members app - your account, licence and results.">
+<meta name="theme-color" content="#0b0d12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="JS Gold">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: phone-first dark trading desk, gold accent; one screen per tab, bottom navigation */
+:root{
+  --ink:#0b0d12; --panel:#12161e; --panel2:#171c26; --line:#232a36;
+  --text:#ece8dd; --muted:#9097a3; --gold:#e3b54a; --win:#4fc28b; --loss:#e0605a;
+  --display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--ink);color:var(--text);font-family:var(--body);font-size:16px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+a{color:inherit}
+button{font:inherit;color:inherit}
+.screen{max-width:520px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 18px) max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 96px) max(16px,env(safe-area-inset-left,0px))}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand img{width:38px;height:38px;border-radius:10px}
+.brand b{font-family:var(--display);font-weight:800;letter-spacing:.04em;font-size:.95rem;display:block;line-height:1.1}
+.brand small{color:var(--muted);font-size:.72rem}
+.iconbtn{background:var(--panel);border:1px solid var(--line);border-radius:12px;width:42px;height:42px;display:grid;place-items:center;cursor:pointer}
+.iconbtn svg{width:20px;height:20px}
+.iconbtn:focus-visible,.btn:focus-visible,input:focus-visible,.tab:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+h1,h2{font-family:var(--display);margin:0;line-height:1.1;text-wrap:balance}
+h1{font-size:1.9rem;font-weight:800}
+h2{font-size:1.2rem;font-weight:800}
+.muted{color:var(--muted)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px}
+.stack{display:grid;gap:14px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px 18px;border-radius:14px;border:1px solid transparent;font-weight:600;text-decoration:none;cursor:pointer}
+.btn-gold{background:var(--gold);color:#1a1405}
+.btn-ghost{background:transparent;border-color:var(--line)}
+label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:6px}
+input{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px;color:var(--text);font-size:1rem;font-family:var(--mono)}
+.err{color:var(--loss);font-size:.9rem;min-height:1.2em}
+.check{display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--muted)}
+.check input{width:auto}
+/* dashboard */
+.status{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.pill{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:.78rem;font-weight:500;letter-spacing:.06em;padding:6px 12px;border-radius:999px}
+.pill i{width:8px;height:8px;border-radius:50%;background:currentColor}
+.pill.on{background:rgba(79,194,139,.14);color:var(--win)}
+.pill.on i{animation:pulse 2s infinite}
+.pill.off{background:rgba(224,96,90,.14);color:var(--loss)}
+.pill.wait{background:rgba(144,151,163,.16);color:var(--muted)}
+@keyframes pulse{50%{opacity:.3}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+.month .lbl{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.month .big{font-family:var(--display);font-weight:800;font-size:2.6rem;line-height:1.1;font-variant-numeric:tabular-nums;margin-top:4px}
+.up{color:var(--win)} .down{color:var(--loss)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;min-width:0}
+.stat span{display:block;font-size:.75rem;color:var(--muted)}
+.stat b{display:block;font-family:var(--display);font-size:1.25rem;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.lic{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.lic b{font-family:var(--display);font-size:1.15rem}
+.days{font-family:var(--mono);font-size:.8rem;white-space:nowrap;flex:none}
+.note{font-size:.85rem;color:var(--muted)}
+.demo-banner{background:rgba(227,181,74,.12);border:1px dashed var(--gold);color:var(--gold);border-radius:12px;padding:8px 12px;font-size:.82rem;text-align:center}
+/* results */
+.chart svg{width:100%;height:auto;display:block}
+table{width:100%;border-collapse:collapse;font-size:.88rem;font-variant-numeric:tabular-nums}
+td,th{padding:9px 4px;border-bottom:1px solid var(--line);text-align:left}
+th{font-family:var(--mono);font-weight:500;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+td.r,th.r{text-align:right}
+/* help */
+.url{display:flex;gap:8px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 8px 8px 12px;font-family:var(--mono);font-size:.78rem;overflow-wrap:anywhere}
+.url span{flex:1;min-width:0}
+.url button{background:var(--line);border:0;border-radius:8px;padding:6px 10px;font-size:.75rem;cursor:pointer;flex:none}
+ol{margin:0;padding-left:20px;display:grid;gap:8px;color:var(--muted)}
+ol b{color:var(--text)}
+/* nav */
+nav{position:fixed;left:0;right:0;bottom:0;background:rgba(11,13,18,.95);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:8px max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 8px) max(16px,env(safe-area-inset-left,0px))}
+nav .in{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tab{background:none;border:0;border-radius:12px;padding:8px 4px;display:grid;justify-items:center;gap:3px;font-size:.72rem;color:var(--muted);cursor:pointer}
+.tab svg{width:22px;height:22px}
+.tab[aria-current="page"]{color:var(--gold);background:rgba(227,181,74,.08)}
+.install{display:none}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 90px);transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:10px 16px;border-radius:12px;font-size:.88rem;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+.spin{width:18px;height:18px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<main id="login" class="screen" hidden>
+  <div class="top"><div class="brand"><img src="icon-192.png" alt=""><div><b>JS GOLD SESSION</b><small>Members app · Troops Kolokoy</small></div></div></div>
+  <div class="stack">
+    <div>
+      <div class="eyebrow">Members</div>
+      <h1 style="margin-top:8px">Your bot, in your pocket.</h1>
+      <p class="muted" style="margin:10px 0 0">Sign in with the MT5 account number and licence key you received from our Telegram bot.</p>
+    </div>
+    <form id="loginForm" class="card stack" novalidate>
+      <div><label for="acc">MT5 account number</label><input id="acc" inputmode="numeric" autocomplete="username" placeholder="e.g. 256690154" required></div>
+      <div><label for="key">Licence key</label><input id="key" autocomplete="current-password" autocapitalize="characters" spellcheck="false" placeholder="L20261231-XXXXXXXXXXXXXXXX" required></div>
+      <label class="check" for="remember"><input type="checkbox" id="remember" checked> Remember me on this phone</label>
+      <div class="err" id="loginErr" role="alert"></div>
+      <button class="btn btn-gold" id="loginBtn" type="submit">Open my dashboard</button>
+    </form>
+    <p class="note">No licence yet? <a href="https://t.me/JS_Gold_Scalper_bot?start=buy">Start your free 30 days</a> or <a href="https://t.me/JS_Gold_Scalper_bot?start=backtest">get the free backtest</a>.</p>
+    <button class="btn btn-ghost install" id="installBtn1" type="button">Install the app</button>
+  </div>
+</main>
+
+<!-- APP -->
+<div id="app" hidden>
+  <!-- ACCOUNT -->
+  <main id="tab-account" class="screen">
+    <div class="top">
+      <div class="brand"><img src="icon-192.png" alt=""><div><b id="hello">Hello</b><small id="accLine">MT5 —</small></div></div>
+      <button class="iconbtn" id="refreshBtn" type="button" aria-label="Refresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></button>
+    </div>
+    <div class="stack">
+      <div class="demo-banner" id="demoBanner" hidden>Example data - this is how your dashboard looks once you sign in.</div>
+      <div class="card status"><span id="pill" class="pill wait"><i></i>CHECKING</span><span class="note" id="lastSeen"></span></div>
+      <div class="card month"><div class="lbl" id="monthLbl">This month</div><div class="big" id="monthVal">—</div><div class="note" id="monthNote"></div></div>
+      <div class="grid">
+        <div class="stat"><span>Balance</span><b id="bal">—</b></div>
+        <div class="stat"><span>Equity</span><b id="eq">—</b></div>
+        <div class="stat"><span>Bot profit (since start)</span><b id="profit">—</b></div>
+        <div class="stat"><span>Open trades</span><b id="open">—</b></div>
+        <div class="stat"><span>Total deposits</span><b id="dep">—</b></div>
+        <div class="stat"><span>Total withdrawals</span><b id="wd">—</b></div>
+      </div>
+      <div class="card stack">
+        <div class="lic"><div><span class="note">Licence · <span id="licType">—</span></span><b id="licUntil" style="display:block">—</b></div><span class="days pill wait" id="licDays">—</span></div>
+        <a class="btn btn-gold" href="https://t.me/JS_Gold_Scalper_bot?start=buy" target="_blank" rel="noopener">Renew licence</a>
+      </div>
+      <div class="card stack" id="notFound" hidden>
+        <h2>Your bot hasn't checked in yet</h2>
+        <p class="note" style="margin:0">Your licence is valid, but we haven't received data from your MT5 yet. Make sure the bot is running and the 3 WebRequest addresses are added (see Help). It checks in every hour.</p>
+      </div>
+      <p class="note" id="updated"></p>
+    </div>
+  </main>
+
+  <!-- RESULTS -->
+  <main id="tab-results" class="screen" hidden>
+    <div class="top"><div class="brand"><img src="icon-192.png" alt=""><div><b>Backtest results</b><small>MT5 Strategy Tester · 2026</small></div></div></div>
+    <div class="stack">
+      <div class="card"><div class="eyebrow">1 Jan – 21 Nov 2026 · $500 start · risk 1%</div>
+        <div class="grid" style="margin-top:12px">
+          <div class="stat"><span>Final balance</span><b>$6,673.92</b></div>
+          <div class="stat"><span>Net profit</span><b class="up">+$6,173.92</b></div>
+          <div class="stat"><span>Max drawdown</span><b>31.2%</b></div>
+          <div class="stat"><span>Trades · win rate</span><b>561 · 48.3%</b></div>
+        </div></div>
+      <div class="card chart"><h2 style="margin-bottom:10px">Profit per month</h2><div id="chart"></div></div>
+      <div class="card"><table><thead><tr><th>Month</th><th class="r">Profit</th><th class="r">Balance</th></tr></thead><tbody id="mtable"></tbody></table>
+        <p class="note" style="margin:10px 0 0">1-minute OHLC, 99% history quality. *November runs to 20 Nov. Backtest results do not guarantee future results.</p></div>
+      <a class="btn btn-ghost" href="https://troops-kolokoy.github.io/#results" target="_blank" rel="noopener">See full results on our website</a>
+    </div>
+  </main>
+
+  <!-- HELP -->
+  <main id="tab-help" class="screen" hidden>
+    <div class="top"><div class="brand"><img src="icon-192.png" alt=""><div><b>Help &amp; setup</b><small>Everything in one place</small></div></div></div>
+    <div class="stack">
+      <div class="card stack"><h2>Setup checklist</h2>
+        <ol>
+          <li><b>MT5 for Windows</b> on a PC or VPS that stays on. The phone MT5 app can't run bots.</li>
+          <li>Put <b>JS_Gold_Session_EA.ex5</b> in MT5 → File → Open Data Folder → MQL5 → Experts.</li>
+          <li>Tools → Options → Expert Advisors → tick <b>Allow WebRequest</b> and add the 3 addresses below.</li>
+          <li>Turn on <b>Algo Trading</b>, attach the bot to <b>XAUUSDm M30</b>, paste your licence key.</li>
+          <li>Recommended: <b>Risk 1%</b>, max lot 0.05 (lower for a small account).</li>
+        </ol></div>
+      <div class="card stack"><h2>WebRequest addresses</h2>
+        <div class="url"><span>https://gist.githubusercontent.com</span><button type="button" data-copy="https://gist.githubusercontent.com">Copy</button></div>
+        <div class="url"><span>https://script.google.com</span><button type="button" data-copy="https://script.google.com">Copy</button></div>
+        <div class="url"><span>https://script.googleusercontent.com</span><button type="button" data-copy="https://script.googleusercontent.com">Copy</button></div>
+      </div>
+      <a class="btn btn-gold" href="https://t.me/TroopsKolokoy" target="_blank" rel="noopener">Message support on Telegram</a>
+      <a class="btn btn-ghost" href="https://t.me/TroopsKolokoy1" target="_blank" rel="noopener">Free signals channel</a>
+      <button class="btn btn-ghost install" id="installBtn2" type="button">Install the app</button>
+      <p class="note" id="iosHint" hidden>On iPhone: tap the Share button in Safari, then <b>Add to Home Screen</b>.</p>
+      <button class="btn btn-ghost" id="logoutBtn" type="button">Sign out</button>
+      <p class="note">The bot shares your MT5 account number, broker and balance with Troops Kolokoy for licence checks and support. Trading involves risk.</p>
+    </div>
+  </main>
+
+  <nav aria-label="App sections"><div class="in">
+    <button class="tab" data-tab="account" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Account</button>
+    <button class="tab" data-tab="results"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Results</button>
+    <button class="tab" data-tab="help"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"/></svg>Help</button>
+  </div></nav>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbxhhnyeDaLULjWu2obtl7WieKq4x4VhavPJTzDeVKjEJysGFst4DAfnoA0ZP7zvk7cW7Q/exec";
+const DEMO = new URLSearchParams(location.search).has("demo");
+const $ = id => document.getElementById(id);
+const store = {
+  get(){ try { return JSON.parse(localStorage.getItem("jsg_login") || "null"); } catch(e){ return null; } },
+  set(v){ try { localStorage.setItem("jsg_login", JSON.stringify(v)); } catch(e){} },
+  clear(){ try { localStorage.removeItem("jsg_login"); } catch(e){} }
+};
+let creds = null, timer = null;
+
+const money = (v, sign) => {
+  if (v === null || v === undefined || v === "" || isNaN(v)) return "—";
+  const n = Number(v), s = "$" + Math.abs(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+  return sign ? (n >= 0 ? "+" : "−") + s : (n < 0 ? "−" + s : s);
+};
+function toast(t){ const el=$("toast"); el.textContent=t; el.classList.add("show"); setTimeout(()=>el.classList.remove("show"),2200); }
+function ago(ms){ const m=Math.round((Date.now()-ms)/60000); if(m<1)return "just now"; if(m<60)return m+" min ago"; const h=Math.round(m/60); if(h<48)return h+" h ago"; return Math.round(h/24)+" days ago"; }
+
+async function fetchMe(acc, key){
+  if (DEMO) return demoData();
+  const r = await fetch(API + "?action=me&acc=" + encodeURIComponent(acc) + "&key=" + encodeURIComponent(key) + "&t=" + Date.now());
+  if (!r.ok) throw new Error("Server error " + r.status);
+  return r.json();
+}
+
+function demoData(){
+  const d=new Date(); d.setDate(d.getDate()+24);
+  return { ok:true, acc:"256690154", found:true, name:"Example Member", broker:"Exness Technologies Ltd", account_type:"REAL",
+    bal:842.35, eq:851.10, dep:500, wd:0, profit:342.35, open:1, ver:"1.34", status:"RUNNING", last:Date.now()-25*60000,
+    month_name:new Date().toLocaleString("en-US",{month:"long",year:"numeric"}), month_profit:96.40,
+    licence:{type:"LIVE", expiry:d.toISOString().slice(0,10)} };
+}
+
+function render(d){
+  $("hello").textContent = d.name ? "Hi, " + String(d.name).split(" ")[0] : "Hi there";
+  $("accLine").textContent = "MT5 " + d.acc + (d.account_type ? " · " + d.account_type : "") + (d.ver ? " · bot v" + d.ver : "");
+  // licence
+  const exp = new Date(d.licence.expiry + "T23:59:59Z"), left = Math.ceil((exp - Date.now())/86400000);
+  $("licType").textContent = d.licence.type;
+  $("licUntil").textContent = "Valid until " + exp.toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});
+  const ld = $("licDays"); ld.className = "days pill " + (left < 0 ? "off" : left <= 5 ? "wait" : "on");
+  ld.textContent = left < 0 ? "EXPIRED" : left + (left === 1 ? " day left" : " days left");
+  $("notFound").hidden = !!d.found;
+  const pill = $("pill");
+  if (!d.found){
+    pill.className="pill wait"; pill.innerHTML="<i></i>NO DATA YET"; $("lastSeen").textContent="";
+    ["bal","eq","profit","open","dep","wd"].forEach(k=>$(k).textContent="—"); $("monthVal").textContent="—"; $("monthNote").textContent="";
+  } else {
+    const online = d.last && (Date.now()-d.last) < 3*3600000;
+    const blocked = d.status && /CANCEL|BLOCK|EXPIRED|STOP/i.test(d.status);
+    pill.className = "pill " + (blocked ? "off" : online ? "on" : "off");
+    pill.innerHTML = "<i></i>" + (blocked ? String(d.status).toUpperCase() : online ? "BOT ONLINE" : "BOT OFFLINE");
+    $("lastSeen").textContent = d.last ? "Last check-in " + ago(d.last) : "";
+    $("bal").textContent = money(d.bal); $("eq").textContent = money(d.eq);
+    const p=$("profit"); p.textContent = money(d.profit,true); p.className = Number(d.profit) >= 0 ? "up" : "down";
+    $("open").textContent = d.open ?? "—"; $("dep").textContent = money(d.dep); $("wd").textContent = money(d.wd);
+    $("monthLbl").textContent = "Month / " + (d.month_name || "this month").toUpperCase();
+    const mv=$("monthVal");
+    if (d.month_profit === undefined || d.month_profit === null){ mv.textContent="—"; mv.className="big"; $("monthNote").textContent="Starts counting from your bot's first check-in this month."; }
+    else { mv.textContent = money(d.month_profit,true); mv.className = "big " + (d.month_profit >= 0 ? "up" : "down"); $("monthNote").textContent = "Bot profit so far this month (deposits and withdrawals not counted)."; }
+  }
+  $("updated").textContent = "Updated " + new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}) + ". Your bot checks in about every hour.";
+}
+
+async function load(quiet){
+  const btn=$("refreshBtn"); if(!quiet) btn.innerHTML='<span class="spin"></span>';
+  try {
+    const d = await fetchMe(creds.acc, creds.key);
+    if (!d.ok){ store.clear(); showLogin(d.error || "Please sign in again."); return; }
+    render(d);
+  } catch(e){ if(!quiet) toast("Couldn't reach the server. Check your internet and try again."); }
+  finally { btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>'; }
+}
+
+function showLogin(msg){ $("app").hidden=true; $("login").hidden=false; $("loginErr").textContent = msg || ""; clearInterval(timer); }
+function showApp(){ $("login").hidden=true; $("app").hidden=false; $("demoBanner").hidden=!DEMO; load(); clearInterval(timer); timer=setInterval(()=>load(true), 5*60000); }
+
+$("loginForm").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  const acc=$("acc").value.replace(/\D/g,""), key=$("key").value.trim().toUpperCase().replace(/\s/g,"");
+  if(!acc){ $("loginErr").textContent="Enter your MT5 account number."; return; }
+  if(!/^[LD]\d{8}-[0-9A-F]{16}$/.test(key)){ $("loginErr").textContent="The licence key looks like L20261231-XXXXXXXXXXXXXXXX. Copy it from our Telegram bot."; return; }
+  const b=$("loginBtn"); b.disabled=true; b.innerHTML='<span class="spin"></span> Checking…'; $("loginErr").textContent="";
+  try {
+    const d = await fetchMe(acc, key);
+    if(!d.ok){ $("loginErr").textContent = d.error || "Sign-in failed."; return; }
+    creds={acc,key}; if($("remember").checked) store.set(creds);
+    showApp(); render(d);
+  } catch(e){ $("loginErr").textContent="Couldn't reach the server. Check your internet and try again."; }
+  finally { b.disabled=false; b.textContent="Open my dashboard"; }
+});
+$("refreshBtn").addEventListener("click", ()=>load());
+$("logoutBtn").addEventListener("click", ()=>{ store.clear(); creds=null; $("key").value=""; showLogin(); setTab("account"); });
+
+function setTab(t){
+  document.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-current", b.dataset.tab===t ? "page" : "false"));
+  ["account","results","help"].forEach(n=>$("tab-"+n).hidden = n!==t);
+  window.scrollTo(0,0);
+}
+document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>setTab(b.dataset.tab)));
+
+document.querySelectorAll("[data-copy]").forEach(b=>b.addEventListener("click", async ()=>{
+  try { await navigator.clipboard.writeText(b.dataset.copy); toast("Copied"); }
+  catch(e){ const r=document.createRange(); r.selectNodeContents(b.previousElementSibling); const s=getSelection(); s.removeAllRanges(); s.addRange(r); toast("Selected - press Copy"); }
+}));
+
+// backtest chart + table
+const MONTHS=[["Jan",848.93],["Feb",824.09],["Mar",98.52],["Apr",214.41],["May",764.87],["Jun",259.20],["Jul",639.41],["Aug",667.05],["Sep",1021.00],["Oct",107.87],["Nov*",728.57]];
+(function(){
+  const W=340,H=180,L=34,B=22,T=14,ph=H-B-T,mx=1200,bw=(W-L-4)/MONTHS.length; let s='';
+  [0,400,800,1200].forEach(v=>{const y=T+ph*(1-v/mx); s+=`<line x1="${L}" y1="${y}" x2="${W}" y2="${y}" stroke="#232a36"/><text x="${L-5}" y="${y+3}" text-anchor="end" fill="#9097a3" font-size="8.5" font-family="IBM Plex Mono,monospace">${v?('$'+v):'0'}</text>`;});
+  MONTHS.forEach(([m,v],i)=>{const h=ph*v/mx,x=L+i*bw+bw*.18,w=bw*.64,y=T+ph-h; s+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2" fill="#4fc28b"><title>${m}: +$${v}</title></rect><text x="${x+w/2}" y="${H-7}" text-anchor="middle" fill="#9097a3" font-size="8.5" font-family="IBM Plex Mono,monospace">${m.replace('*','')}</text>`;});
+  $("chart").innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Profit per month in the 2026 backtest, every month positive">${s}</svg>`;
+  let bal=500, rows='';
+  const full=["January","February","March","April","May","June","July","August","September","October","November*"];
+  MONTHS.forEach(([m,v],i)=>{bal+=v; rows+=`<tr><td>${full[i]}</td><td class="r up">+$${v.toFixed(2)}</td><td class="r">$${bal.toLocaleString("en-US",{minimumFractionDigits:2})}</td></tr>`;});
+  $("mtable").innerHTML=rows;
+})();
+
+// install
+let deferred=null;
+window.addEventListener("beforeinstallprompt", e=>{ e.preventDefault(); deferred=e; document.querySelectorAll(".install").forEach(b=>b.style.display="flex"); });
+document.querySelectorAll(".install").forEach(b=>b.addEventListener("click", async ()=>{ if(!deferred) return; deferred.prompt(); await deferred.userChoice; deferred=null; document.querySelectorAll(".install").forEach(x=>x.style.display="none"); }));
+if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !navigator.standalone) $("iosHint").hidden=false;
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+
+// start
+const saved = store.get();
+if (DEMO){ creds={acc:"256690154",key:"L20261231-0000000000000000"}; showApp(); }
+else if (saved && saved.acc && saved.key){ creds=saved; showApp(); }
+else showLogin();
+</script>
+</body>
+</html>
